@@ -20,7 +20,7 @@ n_falling = 264  # no. of particles! :3
 # box_max = centre + box_width/2  
 
 
-os.chdir("/Users/Abigail/Desktop/Sciences/ISS2.0/data/")
+os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/")
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:
@@ -202,3 +202,4 @@ box_info = {
 
 
 WRITE_DICT("box_dimensions.csv", box_info)
+

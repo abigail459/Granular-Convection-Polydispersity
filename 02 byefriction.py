@@ -17,7 +17,7 @@ from numba import jit, prange
 
 
 ### DIRECTORY SETUP
-rootdir = "/Users/Abigail/Desktop/Sciences"  # js change this
+rootdir = "/Users/liliy/Documents/GitHub"  # js change this
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")

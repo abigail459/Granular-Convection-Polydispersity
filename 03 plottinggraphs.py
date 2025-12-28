@@ -14,7 +14,7 @@ import time as time_module
 
 
 ### DIRECTORY SETUP
-rootdir = "/Users/Abigail/Desktop/Sciences"
+rootdir = "/Users/liliy/Documents/GitHub"
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 
@@ -29,6 +29,7 @@ time_history = data["time_history"]
 rdata = np.load("falling_data.npz")
 particletype = rdata["particletype"]
 
+'''
 def compute_seg_index_over_time(s_history, R, n_falling):
     """
     Compute segregation index S(t) for each saved frame.
@@ -79,7 +80,7 @@ def compute_seg_index_over_time(s_history, R, n_falling):
 # compute S(t) once
 S_values = compute_seg_index_over_time(s_history, R, n_falling)
 np.save("S_values.npy", S_values)   # optional: save for later analysis
-
+'''
 
 osc_enable_x = bool(data.get("oscillation_enable_x", False))
 osc_enable_y = bool(data.get("oscillation_enable_y", True))
@@ -258,6 +259,9 @@ print("\n"+"-"*60)
 print(f"Saved video as 'output.mp4' with freq={freq_y} and amp={amp_y}")
 print("-"*60)
 
+
+
+'''
 def plot_S_vs_time(time_history, S_values):
     plt.figure()
     plt.plot(time_history, S_values, '-k')
@@ -268,3 +272,4 @@ def plot_S_vs_time(time_history, S_values):
     plt.close()
 
 plot_S_vs_time(time_history, S_values)
+'''
