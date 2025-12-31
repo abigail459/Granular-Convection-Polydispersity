@@ -8,7 +8,7 @@ print("=== Segregation analysis started ===")
 # ============================================================
 # PATHS
 # ============================================================
-ROOT = "/Users/liliy/Documents/GitHub/ISS2.0"
+ROOT = "/Users/Abigail/Documents/GitHub/ISS2.0"
 DATA_DIR = os.path.join(ROOT, "data")
 OUTPUT_DIR = DATA_DIR  # keep outputs with data for reproducibility
 

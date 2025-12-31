@@ -3,7 +3,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 import os
 from matplotlib.patches import Circle
 import csv
@@ -14,7 +13,7 @@ import time as time_module
 
 
 ### DIRECTORY SETUP
-rootdir = "/Users/liliy/Documents/GitHub"
+rootdir = "/Users/Abigail/Documents/GitHub"
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 
@@ -202,6 +201,7 @@ def update_frame(frame, s_history, times, R, circles, texts, title, n_falling, h
 fig, ax, circles, texts, title, highcutoff, lowcutoff = initial_render(R, n_falling)
 start_time = time_module.time()
 
+print(texts)
 animation = FuncAnimation(fig =fig, 
                           func = update_frame, 
                           frames = len(s_history), 

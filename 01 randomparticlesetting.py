@@ -20,7 +20,7 @@ n_falling = 264  # no. of particles! :3
 # box_max = centre + box_width/2  
 
 
-os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/")
+os.chdir("/Users/Abigail/Documents/GitHub/ISS2.0/data/")
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:
@@ -54,13 +54,42 @@ box_height = box_top - box_bottom  # 0.18m
 # r_small = (0.003, 0.004)    # Small: 3-4mm
 # r_medium = (0.0045, 0.0055) # Medium: 4.5-5.5mm
 # r_large = (0.006, 0.007)    # Large: 6-7mm
+
+#01
 # r_small = (0.0048, 0.00492)    
-# r_medium = (0.00493, 0.00508) 
+# r_medium = (0.00593, 0.00508) 
 # r_large = (0.00509, 0.00520) 
 
-r_small = (0.0034, 0.00423)    
-r_medium = (0.00424, 0.00576) 
-r_large = (0.00577, 0.00660)   
+#02
+# r_small = (0.0046, 0.00484)    
+# r_medium = (0.00485, 0.00516) 
+# r_large = (0.00517, 0.00540) 
+
+# #04
+# r_small = (0.0042, 0.00456)    
+# r_medium = (0.00457, 0.00544) 
+# r_large = (0.00545, 0.00580) 
+
+#05
+# r_small = (0.004, 0.00447)    
+# r_medium = (0.00448, 0.00552) 
+# r_large = (0.00553, 0.006) 
+
+#06
+r_small = (0.0038, 0.0044)    
+r_medium = (0.00441, 0.00559) 
+r_large = (0.0056, 0.0062) 
+
+#07
+# r_small = (0.0036, 0.00431)    
+# r_medium = (0.00432, 0.00568) 
+# r_large = (0.00569, 0.00640) 
+
+#08
+# r_small = (0.0034, 0.00423)    
+# r_medium = (0.00424, 0.00576) 
+# r_large = (0.00577, 0.0066) 
+
 
 # Divide particles into thirds
 n_per_layer = n_falling // 3

@@ -1,2 +1,0 @@
-* Remember to change directory before starting
-* Ensure the time in the calculating forces is more than or equal to simulation time

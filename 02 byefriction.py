@@ -3,7 +3,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 import os
 from matplotlib.patches import Circle
 import csv
@@ -17,7 +16,7 @@ from numba import jit, prange
 
 
 ### DIRECTORY SETUP
-rootdir = "/Users/liliy/Documents/GitHub"  # js change this
+rootdir = "/Users/Abigail/Documents/GitHub"  # js change this
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
@@ -43,8 +42,8 @@ g = np.array([0.0, -9.8, 0.0])
 
 # SIMULATION PARAMETERS
 t_step = 2e-5              # 20 microseconds
-simulation_duration = 5.0  # s
-display_fps = 60
+simulation_duration = 180  # s
+display_fps = 90
 save_every_n_steps = int(1.0 / (display_fps * t_step))
 
 print(f"SETTINGS:")
