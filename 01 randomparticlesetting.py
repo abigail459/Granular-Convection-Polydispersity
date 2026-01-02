@@ -8,7 +8,7 @@ import os
 # == NUMBER OF PARTICLES TO SHAKE IN CONTAINER == 
 n_falling = 264  
 
-os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/") # change accordingly
+os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/") # Change accordingly
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:
@@ -19,8 +19,8 @@ def WRITE(file, data):
 def WRITE_DICT(file, data_dict):
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(data_dict.keys())   # header
-        writer.writerow(data_dict.values()) # values
+        writer.writerow(data_dict.keys())   # Header
+        writer.writerow(data_dict.values()) # Values
         print(f"box info written to '{file}'")
 
 
@@ -101,13 +101,13 @@ print(f"Layer 2 (MIDDLE): {n_medium} MEDIUM particles, R = {r_medium[0]*1000:.1f
 print(f"Layer 3 (TOP):    {n_small} SMALL particles, R = {r_small[0]*1000:.1f}-{r_small[1]*1000:.1f}mm")
 
 def generate_position(y_min, y_max):
-    #Random position within layer
+    # Random position within layer
     x = random.uniform(box_left + margin, box_right - margin)
     y = random.uniform(y_min, y_max)
     return [x, y, 0.0]
 
 def generate_velocity():
-    #Small random initial velocity
+    # Small random initial velocity
     return [random.uniform(-0.005, 0.003), 0.0, 0.0]
 
 # Generate particles by layer
@@ -115,19 +115,19 @@ s_falling = []
 v_falling = []
 R_falling = []
 
-# LAYER 1: LARGE particles at BOTTOM
+# LAYER 1: Large particles at the bottom
 for _ in range(n_large):
     s_falling.append(generate_position(y_bottom[0], y_bottom[1]))
     v_falling.append(generate_velocity())
     R_falling.append(random.uniform(r_large[0], r_large[1]))
 
-# LAYER 2: MEDIUM particles in MIDDLE
+# LAYER 2: Medium particles in the middle
 for _ in range(n_medium):
     s_falling.append(generate_position(y_middle[0], y_middle[1]))
     v_falling.append(generate_velocity())
     R_falling.append(random.uniform(r_medium[0], r_medium[1]))
 
-# LAYER 3: SMALL particles on TOP
+# LAYER 3: Small particles on top
 for _ in range(n_small):
     s_falling.append(generate_position(y_top[0], y_top[1]))
     v_falling.append(generate_velocity())

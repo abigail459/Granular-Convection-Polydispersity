@@ -8,7 +8,7 @@ print("=== Segregation analysis started ===")
 # === PATHS ===
 ROOT = "/Users/liliy/Documents/GitHub/ISS2.0"
 DATA_DIR = os.path.join(ROOT, "data")
-OUTPUT_DIR = DATA_DIR  # keep outputs with data for reproducibility
+OUTPUT_DIR = DATA_DIR  # Keep outputs with data for reproducibility
 
 os.chdir(DATA_DIR)
 
