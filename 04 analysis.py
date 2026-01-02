@@ -5,18 +5,15 @@ import csv
 
 print("=== Segregation analysis started ===")
 
-# ============================================================
-# PATHS
-# ============================================================
+# === PATHS ===
 ROOT = "/Users/liliy/Documents/GitHub/ISS2.0"
 DATA_DIR = os.path.join(ROOT, "data")
 OUTPUT_DIR = DATA_DIR  # keep outputs with data for reproducibility
 
 os.chdir(DATA_DIR)
 
-# ============================================================
-# LOAD DATA
-# ============================================================
+
+# === LOAD DATA ====
 print("Loading simulation data...")
 data = np.load("generated_values.npz", allow_pickle=True)
 
@@ -33,9 +30,8 @@ print(f"Falling particles: {n_falling}")
 print(f"Time range: {time[0]:.2f} s → {time[-1]:.2f} s")
 print(f"FPS used for smoothing: {fps}")
 
-# ============================================================
-# IDENTIFY LARGE PARTICLES (TOP THIRD BY RADIUS)
-# ============================================================
+
+# === IDENTIFY LARGE PARTICLES ===
 print("Identifying large particles...")
 
 R_fall = R[:n_falling]
@@ -49,9 +45,8 @@ N_large = len(large_indices)
 print(f"Large particle cutoff radius: {large_cutoff:.4e} m")
 print(f"Number of large particles: {N_large}")
 
-# ============================================================
-# SEGREGATION INDEX FUNCTION
-# ============================================================
+
+# === SEGREGATION INDEX FUNCTION ===
 def segregation_index(positions):
     """
     S(t) = fraction of large particles whose centres
@@ -73,10 +68,8 @@ def segregation_index(positions):
     top_region = bed_top - 0.25 * bed_height
     return np.sum(y_large >= top_region) / N_large
 
-# ============================================================
-# COMPUTE S(t)
-# ============================================================
-print("Computing segregation index S(t)...")
+# === COMPUTE S(t) ===
+print("Computing segregation index S(t)")
 
 S = np.zeros(n_frames)
 
@@ -87,10 +80,9 @@ for i in range(n_frames):
 
 print("Segregation index computation complete")
 
-# ============================================================
-# SMOOTHING (1 s MOVING AVERAGE)
-# ============================================================
-print("Smoothing S(t)...")
+
+# === SMOOTHING (1s moving average) ===
+print("Smoothing S(t)")
 
 window = max(1, int(1.0 * fps))
 kernel = np.ones(window) / window
@@ -98,12 +90,11 @@ kernel = np.ones(window) / window
 S_smooth = np.convolve(S, kernel, mode="valid")
 time_smooth = time[:len(S_smooth)]
 
-print(f"Smoothing window: {window} frames (~1 s)")
+print(f"Smoothing window: {window} frames (~1 s).")
 
-# ============================================================
-# METRICS
-# ============================================================
-print("Extracting segregation metrics...")
+
+# === METRICS ===
+print("Extracting segregation metrics")
 
 S_max = float(np.max(S_smooth))
 
@@ -123,10 +114,9 @@ print(f"S_max      = {S_max:.4f}")
 print(f"t_90       = {t_90:.3f} s")
 print(f"S_plateau  = {S_plateau:.4f} ± {S_plateau_std:.4f}")
 
-# ============================================================
-# PLOT
-# ============================================================
-print("Saving segregation_vs_time.png...")
+
+# === PLOT ===
+print("Saving segregation_vs_time.png")
 
 plt.figure(figsize=(7, 4))
 plt.plot(time, S, color="gray", alpha=0.4, label="Raw S(t)")
@@ -144,10 +134,8 @@ plt.close()
 
 print("Plot saved")
 
-# ============================================================
-# WRITE CSV (APPEND SAFELY)
-# ============================================================
-print("Writing results to segregation_results.csv...")
+# === WRITE CSV (append) ===
+print("Writing results to segregation_results.csv")
 
 csv_file = "segregation_results.csv"
 
@@ -178,4 +166,4 @@ with open(csv_file, "a", newline="") as f:
     ])
 
 print("Results written successfully")
-print("=== Analysis completed successfully ===")
+print("=== Analysis completed successfully!! ===")

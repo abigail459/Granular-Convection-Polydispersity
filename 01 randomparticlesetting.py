@@ -1,26 +1,14 @@
-#01randomparticlesetting.py - THREE STRATIFIED LAYERS
+#01randomparticlesetting.py
 import csv
 import random
 import numpy as np
 import os
 
-n_falling = 264  # no. of particles! :3
 
-# plot_min = 0.0 # js change this
-# plot_max = 0.20 # and changethis too 
+# == NUMBER OF PARTICLES TO SHAKE IN CONTAINER == 
+n_falling = 264  
 
-# centre = ((plot_min+plot_max)/2) # 20cm/2 = 10cm
-
-# # square shaped box too
-# box_width = 0.10  # 1.8cm
-# box_height = 0.10
-
-# # for square shaped boxes. for other shapes, change centres and such accordingly
-# box_min = centre - box_width/2 # 10cm - 18cm/2 = 1cm mark. 
-# box_max = centre + box_width/2  
-
-
-os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/")
+os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/") # change accordingly
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:
@@ -36,7 +24,7 @@ def WRITE_DICT(file, data_dict):
         print(f"box info written to '{file}'")
 
 
-# ===== BOX DIMENSIONS ===== (saved in .csv file)
+# === BOX DIMENSIONS === (saved in .csv file)
 
 # Box dimensions (must match simulation!)
 box_left = 0.01
@@ -48,19 +36,11 @@ box_width = box_right - box_left   # 0.18m
 box_height = box_top - box_bottom  # 0.18m
 
 
-# ===== THREE LAYERS IN BOX! :3 =====
+# ===== THREE LAYERS IN BOX =====
 
-# Particle size ranges (3 distinct sizes)
-# r_small = (0.003, 0.004)    # Small: 3-4mm
-# r_medium = (0.0045, 0.0055) # Medium: 4.5-5.5mm
-# r_large = (0.006, 0.007)    # Large: 6-7mm
-# r_small = (0.0048, 0.00492)    
-# r_medium = (0.00493, 0.00508) 
-# r_large = (0.00509, 0.00520) 
-
-r_small = (0.0034, 0.00423)    
-r_medium = (0.00424, 0.00576) 
-r_large = (0.00577, 0.00660)   
+r_small = (0.00400, 0.00447)    
+r_medium = (0.00448, 0.00552) 
+r_large = (0.00553, 0.00600)   
 
 # Divide particles into thirds
 n_per_layer = n_falling // 3
@@ -122,7 +102,7 @@ v_falling = np.array(v_falling)
 R_falling = np.array(R_falling)
 
 # Colour coordination
-particletype = np.empty(n_falling, dtype=np.int8) # np.int8 takes up lesser memory
+particletype = np.empty(n_falling, dtype=np.int8) 
 
 for n, Rvalue in enumerate(R_falling):
     if Rvalue >= r_large[0]:
@@ -149,9 +129,8 @@ print(f"  Layer heights: {layer_height*100:.1f}cm each")
 print(f"{'='*60}\n")
 
 # ============================================================
-# OLD RANDOM GENERATION (COMMENTED OUT)
+# PARTICLE RANDOM GENERATION (commented out, as it ended up unused for our study)
 # ============================================================
-
 """
 # Completely random positions (no layers)
 def s_gen():
@@ -165,23 +144,6 @@ s_falling = np.array([[s_gen(), s_gen(), 0.0] for _ in range(n_falling)])
 v_falling = np.array([[v_gen(), 0.0, 0.0] for _ in range(n_falling)])
 R_falling = np.array([r_gen() for _ in range(n_falling)])
 """
-
-
-
-# np.savez(
-#     "falling_data.npz", 
-#     s_falling = s_falling,
-#     v_falling = v_falling,
-#     R_falling = R_falling,
-#     plot_min = plot_min,
-#     plot_max = plot_max,
-#     box_width = box_width,
-#     box_height = box_height,
-#     box_left = box_min,
-#     box_right = box_max,
-#     box_bottom = box_min,
-#     box_top = box_max
-#     )
 
 box_info = {
     "box_left": box_left,
