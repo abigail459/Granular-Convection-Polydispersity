@@ -12,11 +12,12 @@ import time as time_module
 
 from numba import jit, prange
 
-# mu_something --> micro, 10^-6
+# == Things to take note of ==
+# mu_x = micro, 10^-6
 
 
 ### DIRECTORY SETUP
-rootdir = "/Users/Abigail/Documents/GitHub"  # js change this
+rootdir = "/Users/liliy/Documents/GitHub"  # change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
@@ -28,22 +29,21 @@ E_tilde = 1e7              # Pa, the effective Young's modulus in Hertzian conta
                            # Lower value -> "softer" particles -> deeper overlaps -> slower/stable simulation.
 gamma_n_over_R = 2e5       #Pa*s/m,, more damping --> less bounce,, controls energy loss during collisions.s
 w_adhesion = 0.0           # J/m^2,, Surface energy density for JKR cohesive contact.
-                           # Set to zero → no sticking forces between particles (non-cohesive granular flow).
+                           # Set to zero: Means that there is no sticking forces between particles (non-cohesive granular flow).
 Mu_air = 1.82e-5           # Pa*s
 
 # FRICTION PARAMETERS
 k_t = 2e7                  # tangential stiffness,, produces tangential (shear) force, F = -k * ξ, N/m. 
 mu_t = 0.3                 # # sliding (Coulomb) friction coefficient,, Higher µₜ --> particles grip more, form stable piles.
 mu_r = 0.04                # rolling friction coefficient
-# change above to 0.28, 0.03 if it looks weird
 
-# gravity
+# GRAVITY 
 g = np.array([0.0, -9.8, 0.0])
 
 # SIMULATION PARAMETERS
-t_step = 2e-5              # 20 microseconds
-simulation_duration = 180  # s
-display_fps = 90
+t_step = 2e-5                # in microseconds
+simulation_duration = 180.0  # in seconds
+display_fps = 90             # frames per second of the output video
 save_every_n_steps = int(1.0 / (display_fps * t_step))
 
 print(f"SETTINGS:")
@@ -55,9 +55,15 @@ print(f"  Frames: {int(simulation_duration * display_fps)}")
 ### OSCILLATION CONFIGURATION
 class oscillation_config:
     def __init__(self):
-        # make False/True for which way we want it to vibrate. 
+        # make False/True to indicate way we want it to vibrate (vertical/horizontal). 
         self.enable_x = False
         self.enable_y = True
+    
+        self.amplitude_x = 0.0045
+        self.amplitude_y = 0.007 # in mm
+
+        self.frequency_x = 5.0
+        self.frequency_y = 7.6 # in Hz
 
         '''
         to ensure Γ ≈ 1.5 to 3.0, where convection and segregation happen
@@ -66,14 +72,7 @@ class oscillation_config:
         lab: Γ: ~1-15; ~5-100 Hz; ~0.1-10 mm
         industrial: ~10-100+; ~10-1000 Hz; ~0.01-5 mm
         '''
-        
-        self.amplitude_x = 0.0045
-        self.amplitude_y = 0.007 # arnd 2–15mm (def: 0.004m)
 
-        self.frequency_x = 5.0
-        self.frequency_y = 7.6 # arnd 5-20  (def: 12.0Hz)
-
-        #ignore for now till needed. this should make it go diagonal to diagonal.
         self.phase_x = 0.0
         self.phase_y = 0.0
         self.omega_x = 2 * np.pi * self.frequency_x
@@ -106,23 +105,8 @@ class oscillation_config:
 oscil_config = oscillation_config()
 oscil_config.print_info(abs(g[1]))
 
-### FULL-SCREEN BOX (0-20cm graph)
 
-# plot_min = data["plot_min"] # js change this
-# plot_max = data["plot_max"] # and changethis too
-
-# centre = ((plot_min+plot_max)/2) # 20cm/2 = 10cm
-
-# box_width = data["box_width"]  # 18cm, includes 1cm margin at each side
-# box_height = data["box_height"]  # 18cm
-
-# # change shape n size in 01
-# box_left = data["box_left"] 
-# box_right = data["box_right"] 
-# box_bottom = data["box_bottom"]
-# box_top = data["box_top"]
-
-
+# READ BOX INFORMATION
 with open("box_dimensions.csv", "r") as f:
     reader = csv.DictReader(f)
     box_info = next(reader)
@@ -186,59 +170,17 @@ Vol = (4.0/3.0) * np.pi * R**3
 m = Vol * rho_particle
 gamma_n = gamma_n_over_R * R
 
-# Tangential history (full matrix, upper triangle used)
+# Tangential history
 tangential_history = np.zeros((n_particles, n_particles, 3), dtype=np.float64)
 
 
+# === CONTACT FORCE CALCULATION ===
 
-# spatial hash that's no longer needed... i think. 
-'''
-class SpatialHash:
-    def __init__(self, cell_size):
-        self.cell_size = cell_size
-        self.grid = {}
-    def clear(self):
-        self.grid.clear()
-    def _hash(self, x, y):
-        return (int(x / self.cell_size), int(y / self.cell_size))
-    def insert(self, particle_id, x, y):
-        cell = self._hash(x, y)
-        if cell not in self.grid:
-            self.grid[cell] = []
-        self.grid[cell].append(particle_id)
-    def get_nearby(self, x, y):
-        cell = self._hash(x, y)
-        nearby = []
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                neighbor = (cell[0] + dx, cell[1] + dy)
-                nearby.extend(self.grid.get(neighbor, []))
-        return nearby
-
-max_radius = np.max(R)
-spatial_hash = SpatialHash(cell_size=3.0 * max_radius)
-print(f"\nSpatial hash cell size: {3.0 * max_radius * 1000:.1f}mm")
-'''
-
-
-
-
-# === NUMBA CONTACT KERNEL ===
-
-@jit (nopython=True, parallel=True, fastmath=True) #fastmath and parallel is basically optimisation for ur CPU 
-    #nopython difference --> https://stackoverflow.com/questions/71510827/numba-when-to-use-nopython-true 
-
+@jit (nopython=True, parallel=True, fastmath=True)
 def get_forces_numba(s, v, R, gamma_n, E_tilde,
                                  n_falling, box_velocity,
                                  k_t, mu_t, mu_r,
                                  t_step, tang_hist):
-    """
-    Numba --> contact force & fricti on
-    - Hertz normal force
-    - viscous normal damping
-    - Cundall-Strack tangential spring with Coulomb cap
-    -  v. simple rolling resistance
-    """
 
     n = len(s)
     F_contact = np.zeros((n, 3)) #2D array with n rows + 3 columns
@@ -397,6 +339,8 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
 
     return F_contact
 
+
+# TOTAL FORCES
 def get_forces_optimised(s, v, R, m, gamma_n, E_tilde, n_falling, box_velocity):
     n = len(s)
     F_total = np.zeros((n, 3))
