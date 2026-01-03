@@ -12,12 +12,12 @@ import time as time_module
 from matplotlib.animation import FFMpegWriter
 
 
-### DIRECTORY SETUP
+# == DIRECTORY SETUP ==
 rootdir = "/Users/liliy/Documents/GitHub" # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 
-### DATA SETUP
+# == DATA SETUP == 
 data = np.load("generated_values.npz")
 
 n_frames = data["n_frames"]
@@ -38,13 +38,13 @@ freq_x = float(data.get("oscillation_frequency_x", 2.0))
 freq_y = float(data.get("oscillation_frequency_y", 2.0))
 
 
-### SIMULATION PARAMETERS
+# == SIMULATION PARAMETERS == 
 t_step = float(data.get("t_step"))  # Timestep
 simulation_duration = float(data.get("simulation_duration"))  
 display_fps = float(data.get("display_fps")) # FPS
 numrendered = display_fps*simulation_duration
     
-## FUNCTIONS
+# == FUNCTIONS == 
 if osc_enable_y and not osc_enable_x:
     oscillation_amplitude = amp_y
     oscillation_frequency = freq_y
@@ -63,9 +63,9 @@ def get_box_displacement(time):
 def get_box_velocity(time):
     return oscillation_amplitude * omega * np.cos(omega * time)
 
-### INITIALISATION
+# == INITIALISATION == 
 def initial_render(R, n_falling):   # Render constant variables first, then update movement using FuncAnimation
-    fig = plt.figure(figsize=(6, 6), dpi=80)  # Smaller/lower DPI = faster
+    fig = plt.figure(figsize=(6, 6), dpi=80) 
 
     ax = fig.add_subplot(111)
     ax.set_aspect('equal')
@@ -109,7 +109,7 @@ def initial_render(R, n_falling):   # Render constant variables first, then upda
     return fig, ax, circles, texts, title, highcutoff, lowcutoff
 
 
-### UPDATE FRAME
+# == UPDATE FRAME ==
 def update_frame(frame, s_history, times, R, circles, texts, title, n_falling, highcutoff, lowcutoff):
     s_current = s_history[frame]
     time = times[frame]
@@ -136,7 +136,7 @@ def update_frame(frame, s_history, times, R, circles, texts, title, n_falling, h
     return circles + [text for text in texts if text is not None] + [title] # For blitting, a faster way to copy images
 
 
-### RUNNING ANIMATION
+# == RUNNING ANIMATION ==
 fig, ax, circles, texts, title, highcutoff, lowcutoff = initial_render(R, n_falling)
 start_time = time_module.time()
 

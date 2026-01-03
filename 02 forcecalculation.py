@@ -12,36 +12,37 @@ import time as time_module
 
 from numba import jit, prange
 
-# == Things to take note of ==
-# mu_x = micro, 10^-6
+# === Things to take note of ===
+# μ is denoted as "mu" in variable names. 
 
 
-### DIRECTORY SETUP
+# == DIRECTORY SETUP == 
 rootdir = "/Users/liliy/Documents/GitHub"  # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
 
 
-### PHYSICAL PARAMETERS
-rho_particle = 7630        # kg/m^3, eq. 2.1a
-E_tilde = 1e7              # Pa, the effective Young's modulus in Hertzian contact formula.
-                           # Lower value -> "softer" particles -> deeper overlaps -> slower/stable simulation.
-gamma_n_over_R = 2e5       #Pa*s/m, more damping --> less bounce, controls energy loss during collisions.s
-w_adhesion = 0.0           # J/m^2, Surface energy density for JKR cohesive contact.
-                           # Set to zero: Means that there is no sticking forces between particles (non-cohesive granular flow).
-Mu_air = 1.82e-5           # Pa*s
+# == PHYSICAL PARAMETERS == 
+# Material properties based on steel particles (ρ = 7630 kg/m^3)
+rho_particle = 7630        # Particle density (kg/m^3)
+E_tilde = 1e7              # Effective Young's modulus in Hertzian contact formula (Pa) 
+                           # Lower values simulate softer materials with larger contact areas
+gamma_n_over_R = 2e5       # Normal damping coefficient per unit radius (Pa*s/m). Controls energy dissipation during collisions.
+w_adhesion = 0.0           # Surface energy density for JKR cohesion (J/m^2). 
+                           # Set to zero: for non-cohesive dry granular materials
+Mu_air = 1.82e-5           # Dynamic viscosity of air (Pa*s). Used for Stokes drag calculation. 
 
-# FRICTION PARAMETERS
-k_t = 2e7                  # Tangential stiffness, produces tangential (shear) force, F = -k * ξ, N/m. 
-mu_t = 0.3                 # Sliding (Coulomb) friction coefficient, Higher µₜ --> particles grip more, form stable piles.
-mu_r = 0.04                # Rolling friction coefficient
+# == FRICTION PARAMETERS (Cundall-Strack) == 
+k_t = 2e7                  # Tangential spring stiffness (N/m). Governs elastic tangential deformation before sliding.
+mu_t = 0.3                 # Coulomb sliding friction coefficient [dimensionless].
+mu_r = 0.04                # Rolling resistance coefficient [dimensionless]. Accounts for energy loss due to particle rotation.
 
-# GRAVITY 
-g = np.array([0.0, -9.8, 0.0])
+# == GRAVITY ==
+g = np.array([0.0, -9.8, 0.0]) # 9.8 m/s^2
 
-# SIMULATION PARAMETERS
-t_step = 2e-5                # In microseconds
+# == SIMULATION PARAMETERS == 
+t_step = 2e-5                # (20) microseconds 
 simulation_duration = 180.0  # In seconds
 display_fps = 90             # Frames per second of the output video
 save_every_n_steps = int(1.0 / (display_fps * t_step))
@@ -52,12 +53,12 @@ print(f"  Duration: {simulation_duration}s")
 print(f"  Total steps: {int(simulation_duration/t_step):,}")
 print(f"  Frames: {int(simulation_duration * display_fps)}")
 
-### OSCILLATION CONFIGURATION
+# == OSCILLATION CONFIGURATION == 
 class oscillation_config:
     def __init__(self):
         # Make False/True to indicate way we want it to vibrate (vertical/horizontal). 
-        self.enable_x = False
-        self.enable_y = True
+        self.enable_x = False    # Horizontal oscillation
+        self.enable_y = True     # Vertical oscillation
     
         self.amplitude_x = 0.0045
         self.amplitude_y = 0.007 # In mm
@@ -67,7 +68,7 @@ class oscillation_config:
 
         '''
         to ensure Γ ≈ 1.5 to 3.0, where convection and segregation happen
-        however, diff shaking has different ranges
+        however, different shaking has different ranges
         human: Γ ≈ 0.5-3.0; ~2-6Hz; ~5-30mm
         lab: Γ: ~1-15; ~5-100 Hz; ~0.1-10 mm
         industrial: ~10-100+; ~10-1000 Hz; ~0.01-5 mm
@@ -106,7 +107,7 @@ oscil_config = oscillation_config()
 oscil_config.print_info(abs(g[1]))
 
 
-### READ BOX INFORMATION
+# === READ BOX INFORMATION ===
 with open("box_dimensions.csv", "r") as f:
     reader = csv.DictReader(f)
     box_info = next(reader)
@@ -143,7 +144,7 @@ print(f"Wall particles: {n_box}")
 print(f"  Spacing: {wall_spacing*1000:.0f}mm")
 print(f"  Radius: {box_particle_radius*1000:.0f}mm")
 
-### CSV
+# == CSV == 
 def READ(file):
     completefile = []
     with open(file, 'r', newline='') as fin:
@@ -152,7 +153,7 @@ def READ(file):
             completefile.append([float(x) for x in row])
     return completefile
 
-### FALLING PARTICLES
+# Call particle data from csv files
 s_falling = data["s_falling"]
 v_falling = data["v_falling"]
 R_falling = data["R_falling"]
@@ -185,34 +186,36 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
     n = len(s)
     F_contact = np.zeros((n, 3)) # 2D array with n rows + 3 columns
 
-    for i in prange(n): # Parallel range, outer loop. i is the first particle we look at 
-        for j in range(i + 1, n): # Inner loop. j is the second particle we look at. 
-            dx = s[i, 0] - s[j, 0] # Difference in x coordinates.
-            dy = s[i, 1] - s[j, 1] # '' y
-            dz = s[i, 2] - s[j, 2] # '' z
-                # Vector from particle j to i.
+    # Loop over all unique particle pairs
+    for i in prange(n):  # Parallel loop over 1st particle index
+        for j in range(i + 1, n):  # 2nd particle index (avoid double-counting)
 
-            dist_sq = dx*dx + dy*dy + dz*dz # Squared distance between particles.
-            contact_threshold_sq = (R[i] + R[j]) ** 2 # Squared sum of radii = maximum squared distance for contact.
-            if dist_sq > contact_threshold_sq * 1.01: # If particles are clearly further apart than the contact dist (with a 1% margin), skip them.
+            # Calculate separation vector from particle j to particle i
+            dx = s[i, 0] - s[j, 0] 
+            dy = s[i, 1] - s[j, 1]  
+            dz = s[i, 2] - s[j, 2]
+
+            # Check for contact. 
+            dist_sq = dx*dx + dy*dy + dz*dz  # Squared distance between particles.
+            contact_threshold_sq = (R[i] + R[j]) ** 2  # Squared sum of radii = maximum squared distance for contact.
+            if dist_sq > contact_threshold_sq * 1.01:  # If particles are clearly further apart than the contact dist (with a 1% margin), skip them.
                 continue
             if dist_sq < 1e-24: # If they are (numerically) on top of each other, skip to avoid division by zero.
                 continue        # 1e-24 is basically 0, so it avoids division by 0
 
-            dist = np.sqrt(dist_sq) # Actual distance.
-            h_ij = R[i] + R[j] - dist # Overlap (penetration depth) between the spheres.
-            if h_ij <= 0.0: # If there is no overlap, not in contact.
-                # i, j is a pair. 
-                # Reset tangential history when not in contact
+            dist = np.sqrt(dist_sq)  # Square root: find actual distance.
+            h_ij = R[i] + R[j] - dist  # Overlap (penetration depth) between the spheres.
+            if h_ij <= 0.0:  # If there is no overlap, the particles are not in contact.
+                # Reset tangential history when not in contact.
                 tang_hist[i, j, 0] = 0.0
                 tang_hist[i, j, 1] = 0.0
                 tang_hist[i, j, 2] = 0.0
                 tang_hist[j, i, 0] = 0.0
                 tang_hist[j, i, 1] = 0.0
-                tang_hist[j, i, 2] = 0.0    # Reset the stored tangential displacement--> tangential spring starts from 0 next time they touch.
+                tang_hist[j, i, 2] = 0.0    # Reset the stored tangential displacement: tangential spring starts from 0 next time they touch.
                 continue # Skip for this pair
 
-            inv_dist = 1.0 / dist # Inverse of distance.
+            inv_dist = 1.0 / dist  # Inverse of distance.
 
             # Components of the unit normal vector from j to i.
             r_hat_x = dx * inv_dist 
@@ -222,11 +225,11 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
             R_eff = (R[i] * R[j]) / (R[i] + R[j]) # Hertzian effective radius for two spheres in contact.
 
             # Velocities
-            if i < n_falling: # If it is a particle in the box
+            if i < n_falling: # If it is a particle in the box, 
                 v_i_x = v[i, 0]
                 v_i_y = v[i, 1]
                 v_i_z = v[i, 2]
-            else: # If it is a wall particle 
+            else: # If it is a wall particle, 
                 v_i_x = box_velocity[0]
                 v_i_y = box_velocity[1]
                 v_i_z = box_velocity[2]
@@ -249,7 +252,7 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
             # r_hat is a unit vector pointing from j to i (length 1).
             v_rel_normal = v_rel_x * r_hat_x + v_rel_y * r_hat_y + v_rel_z * r_hat_z
 
-            root_term = np.sqrt(R_eff * h_ij) #proportional to contact radius.
+            root_term = np.sqrt(R_eff * h_ij) # proportional to contact radius.
             f_elastic_mag = (2.0/3.0) * E_tilde * np.sqrt(R_eff) * (h_ij ** 1.5) 
             f_viscous_mag = -gamma_n[i] * root_term * v_rel_normal
 
@@ -268,12 +271,12 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
             vtz = v_rel_z - v_rel_normal * r_hat_z
 
             # Tangential spring. New displacement = old displacement + (tangential velocity × time step).
-            # If keep sliding in one direction, xi increases.
+            # If it keep sliding in one direction, xi increases.
             xi_x = tang_hist[i, j, 0] + vtx * t_step
             xi_y = tang_hist[i, j, 1] + vty * t_step
             xi_z = tang_hist[i, j, 2] + vtz * t_step
 
-            # Tangential spring force = −ktξ
+            # Tangential spring force = −ktξ 
             ft_x = -k_t * xi_x
             ft_y = -k_t * xi_y
             ft_z = -k_t * xi_z
@@ -295,7 +298,7 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
                 xi_y = -ft_y / k_t
                 xi_z = -ft_z / k_t
 
-            # Remove normal component from ft.. make Ft exactly tangential, removes any component along r_hat 
+            # Remove normal component from ft. Make Ft exactly tangential, removes any component along r_hat 
             dot_ft_n = ft_x * r_hat_x + ft_y * r_hat_y + ft_z * r_hat_z
             ft_x -= dot_ft_n * r_hat_x
             ft_y -= dot_ft_n * r_hat_y
@@ -340,7 +343,7 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
     return F_contact
 
 
-# TOTAL FORCES
+# === TOTAL FORCES === 
 def get_forces_optimised(s, v, R, m, gamma_n, E_tilde, n_falling, box_velocity):
     n = len(s)
     F_total = np.zeros((n, 3))

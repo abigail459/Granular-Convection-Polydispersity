@@ -36,9 +36,10 @@ box_width = box_right - box_left   # 0.18m
 box_height = box_top - box_bottom  # 0.18m
 
 
-# ===== THREE LAYERS IN BOX =====
+# ===== TRIAL RANGES =====
+# Particle size ranges (3 distinct sizes). 
 
-# Particle size ranges (3 distinct sizes)
+# Example: 
 # r_small = (0.003, 0.004)    # Small: 3-4mm
 # r_medium = (0.0045, 0.0055) # Medium: 4.5-5.5mm
 # r_large = (0.006, 0.007)    # Large: 6-7mm
@@ -149,7 +150,7 @@ for n, Rvalue in enumerate(R_falling):
     else:
         particletype[n] = 0
 
-# Save data
+# Save particle data to csv files
 WRITE("s_falling_data.csv", s_falling)
 WRITE("v_falling_data.csv", v_falling)
 WRITE("R_falling_data.csv", R_falling[:, np.newaxis])
@@ -165,9 +166,9 @@ np.savez(
 print(f"  Layer heights: {layer_height*100:.1f}cm each")
 print(f"{'='*60}\n")
 
-# ============================================================
+# =======
 # PARTICLE RANDOM GENERATION (commented out, as it ended up unused for our study)
-# ============================================================
+# =======
 """
 # Completely random positions (no layers)
 def s_gen():
