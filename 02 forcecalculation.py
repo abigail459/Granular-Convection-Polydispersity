@@ -1,12 +1,9 @@
 # 02withoutfriction.py
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
 import os
-from matplotlib.patches import Circle
 import csv
-from collections import defaultdict
 import time as time_module
 
 
@@ -17,7 +14,7 @@ from numba import jit, prange
 
 
 # == DIRECTORY SETUP == 
-rootdir = "/Users/liliy/Documents/GitHub"  # Change accordingly
+rootdir = "/Users/Abigail/Documents/GitHub"  # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
@@ -43,7 +40,7 @@ g = np.array([0.0, -9.8, 0.0]) # 9.8 m/s^2
 
 # == SIMULATION PARAMETERS == 
 t_step = 2e-5                # (20) microseconds 
-simulation_duration = 180.0  # In seconds
+simulation_duration = 5.0  # In seconds
 display_fps = 90             # Frames per second of the output video
 save_every_n_steps = int(1.0 / (display_fps * t_step))
 
@@ -476,5 +473,5 @@ def run_simulation():
 
     return frame_counter, s_history
 
-if __name__ == "__main__":
-    n_frames, s_history = run_simulation()
+
+n_frames, s_history = run_simulation()

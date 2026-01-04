@@ -8,7 +8,7 @@ import os
 # == NUMBER OF PARTICLES TO SHAKE IN CONTAINER == 
 n_falling = 264  
 
-os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data/") # Change accordingly
+os.chdir("/Users/Abigail/Documents/GitHub/ISS2.0/data/") # Change accordingly
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:

@@ -13,7 +13,7 @@ from matplotlib.animation import FFMpegWriter
 
 
 # == DIRECTORY SETUP ==
-rootdir = "/Users/liliy/Documents/GitHub" # Change accordingly
+rootdir = "/Users/Abigail/Documents/GitHub" # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 

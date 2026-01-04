@@ -3,17 +3,13 @@ import os
 import matplotlib.pyplot as plt
 import csv
 
-print("=== Segregation analysis started ===")
+print("--- Segregation analysis started ---")
 
-# === PATHS ===
-ROOT = "/Users/liliy/Documents/GitHub/ISS2.0"
-DATA_DIR = os.path.join(ROOT, "data")
-OUTPUT_DIR = DATA_DIR  # Keep outputs with data
-
-os.chdir(DATA_DIR)
+# --- PATHS ---
+os.chdir("/Users/Abigail/Documents/GitHub/ISS2.0/data")
 
 
-# === LOAD DATA ====
+# --- LOAD DATA ---
 print("Loading simulation data...")
 data = np.load("generated_values.npz", allow_pickle=True)
 
@@ -31,22 +27,22 @@ print(f"Time range: {time[0]:.2f} s → {time[-1]:.2f} s")
 print(f"FPS used for smoothing: {fps}")
 
 
-# === IDENTIFY LARGE PARTICLES ===
+# --- IDENTIFY LARGE PARTICLES ---
 print("Identifying large particles...")
 
-R_fall = R[:n_falling]
-R_min = np.min(R_fall)
-R_max = np.max(R_fall)
+R_falling = R[:n_falling]
+R_min = np.min(R_falling)
+R_max = np.max(R_falling)
 
 large_cutoff = R_max - (R_max - R_min) / 3.0
-large_indices = np.where(R_fall >= large_cutoff)[0]
+large_indices = np.where(R_falling >= large_cutoff)[0]
 N_large = len(large_indices)
 
 print(f"Large particle cutoff radius: {large_cutoff:.4e} m")
 print(f"Number of large particles: {N_large}")
 
 
-# === SEGREGATION INDEX FUNCTION ===
+# --- SEGREGATION INDEX FUNCTION ---
 def segregation_index(positions):
     """
     S(t) = fraction of large particles whose centres
@@ -68,7 +64,7 @@ def segregation_index(positions):
     top_region = bed_top - 0.25 * bed_height
     return np.sum(y_large >= top_region) / N_large
 
-# === COMPUTE S(t) ===
+# --- COMPUTE S(t) ---
 print("Computing segregation index S(t)")
 
 S = np.zeros(n_frames)
@@ -81,7 +77,7 @@ for i in range(n_frames):
 print("Segregation index computation complete")
 
 
-# === SMOOTHING (1s moving average) ===
+# --- SMOOTHING (1s moving average) ---
 print("Smoothing S(t)")
 
 window = max(1, int(1.0 * fps))
@@ -93,17 +89,15 @@ time_smooth = time[:len(S_smooth)]
 print(f"Smoothing window: {window} frames (~1 s).")
 
 
-# === METRICS ===
+# --- METRICS ---
 print("Extracting segregation metrics")
 
 S_max = float(np.max(S_smooth))
 
 threshold = 0.9 * S_max
-idx_90 = np.argmax(S_smooth >= threshold)
-t_90 = float(time_smooth[idx_90])
+t_90 = float(time_smooth[np.argmax(S_smooth >= threshold)]) # finds index of highest value .. 
 
-idx_peak = np.argmax(S_smooth)
-t_peak = time_smooth[idx_peak]
+t_peak = time_smooth[np.argmax(S_smooth)]
 
 plateau_mask = np.abs(time_smooth - t_peak) <= 10.0
 
@@ -115,7 +109,7 @@ print(f"t_90       = {t_90:.3f} s")
 print(f"S_plateau  = {S_plateau:.4f} ± {S_plateau_std:.4f}")
 
 
-# === PLOT ===
+# --- PLOT ---
 print("Saving segregation_vs_time.png")
 
 plt.figure(figsize=(7, 4))
@@ -166,4 +160,4 @@ with open(csv_file, "a", newline="") as f:
     ])
 
 print("Results written successfully")
-print("=== Analysis completed successfully!! ===")
+print("--- Analysis completed successfully!! ---")
