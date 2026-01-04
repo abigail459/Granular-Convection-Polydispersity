@@ -13,7 +13,7 @@ from numba import jit, prange
 # μ is denoted as "mu" in variable names. 
 
 
-# == DIRECTORY SETUP == 
+# --- DIRECTORY SETUP --- 
 rootdir = "/Users/liliy/Documents/GitHub"  # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()

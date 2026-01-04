@@ -128,7 +128,7 @@ plt.close()
 
 print("Plot saved")
 
-# === WRITE CSV (append) ===
+# --- WRITE CSV (append) ---
 print("Writing results to segregation_results.csv")
 
 csv_file = "segregation_results.csv"

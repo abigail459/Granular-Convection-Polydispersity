@@ -40,53 +40,53 @@ box_height = box_top - box_bottom  # 0.18m
 # Particle size ranges (3 distinct sizes). 
 
 # Example: 
-# r_small = (0.003, 0.004)    # Small: 3-4mm
-# r_medium = (0.0045, 0.0055) # Medium: 4.5-5.5mm
-# r_large = (0.006, 0.007)    # Large: 6-7mm
+# R_small = (0.003, 0.004)    # Small: 3-4mm
+# R_medium = (0.0045, 0.0055) # Medium: 4.5-5.5mm
+# R_large = (0.006, 0.007)    # Large: 6-7mm
 
 #01
-# r_small = (0.0048, 0.00492)    
-# r_medium = (0.00593, 0.00508) 
-# r_large = (0.00509, 0.00520) 
+# R_small = (0.0048, 0.00492)    
+# R_medium = (0.00593, 0.00508) 
+# R_large = (0.00509, 0.00520) 
 
 #02
-# r_small = (0.0046, 0.00484)    
-# r_medium = (0.00485, 0.00516) 
-# r_large = (0.00517, 0.00540) 
+# R_small = (0.0046, 0.00484)    
+# R_medium = (0.00485, 0.00516) 
+# R_large = (0.00517, 0.00540) 
 
 # #04
-# r_small = (0.0042, 0.00456)    
-# r_medium = (0.00457, 0.00544) 
-# r_large = (0.00545, 0.00580) 
+# R_small = (0.0042, 0.00456)    
+# R_medium = (0.00457, 0.00544) 
+# R_large = (0.00545, 0.00580) 
 
 #05
-# r_small = (0.004, 0.00447)    
-# r_medium = (0.00448, 0.00552) 
-# r_large = (0.00553, 0.006) 
+# R_small = (0.004, 0.00447)    
+# R_medium = (0.00448, 0.00552) 
+# R_large = (0.00553, 0.006) 
 
 #06
-r_small = (0.0038, 0.0044)    
-r_medium = (0.00441, 0.00559) 
-r_large = (0.0056, 0.0062) 
+R_small = (0.0038, 0.0044)    
+R_medium = (0.00441, 0.00559) 
+R_large = (0.0056, 0.0062) 
 
 #07
-# r_small = (0.0036, 0.00431)    
-# r_medium = (0.00432, 0.00568) 
-# r_large = (0.00569, 0.00640) 
+# R_small = (0.0036, 0.00431)    
+# R_medium = (0.00432, 0.00568) 
+# R_large = (0.00569, 0.00640) 
 
 #08
-# r_small = (0.0034, 0.00423)    
-# r_medium = (0.00424, 0.00576) 
-# r_large = (0.00577, 0.0066) 
+# R_small = (0.0034, 0.00423)    
+# R_medium = (0.00424, 0.00576) 
+# R_large = (0.00577, 0.0066) 
 
 
 # Divide particles into thirds
-n_per_layer = n_falling // 3
+n_perLayer = n_falling // 3
 n_remainder = n_falling % 3
 
-n_large = n_per_layer + (1 if n_remainder > 0 else 0)
-n_medium = n_per_layer + (1 if n_remainder > 1 else 0)
-n_small = n_per_layer
+n_large = n_perLayer + (1 if n_remainder > 0 else 0)
+n_medium = n_perLayer + (1 if n_remainder > 1 else 0)
+n_small = n_perLayer
 
 # Vertical layers (divide box into thirds)
 layer_height = box_height / 3.0
@@ -97,9 +97,9 @@ y_middle = (box_bottom + layer_height + margin, box_bottom + 2*layer_height - ma
 y_top = (box_bottom + 2*layer_height + margin, box_top - margin)
 
 print(f"\n{'='*60}")
-print(f"Layer 1 (BOTTOM): {n_large} LARGE particles, R = {r_large[0]*1000:.1f}-{r_large[1]*1000:.1f}mm")
-print(f"Layer 2 (MIDDLE): {n_medium} MEDIUM particles, R = {r_medium[0]*1000:.1f}-{r_medium[1]*1000:.1f}mm")
-print(f"Layer 3 (TOP):    {n_small} SMALL particles, R = {r_small[0]*1000:.1f}-{r_small[1]*1000:.1f}mm")
+print(f"Layer 1 (Bottom): {n_large} large particles, R = {R_large[0]*1000:.1f}-{R_large[1]*1000:.1f}mm")
+print(f"Layer 2 (Middle): {n_medium} medium particles, R = {R_medium[0]*1000:.1f}-{R_medium[1]*1000:.1f}mm")
+print(f"Layer 3 (Top):    {n_small} small particles, R = {R_small[0]*1000:.1f}-{R_small[1]*1000:.1f}mm")
 
 def generate_position(y_min, y_max):
     # Random position within layer
@@ -120,19 +120,19 @@ R_falling = []
 for _ in range(n_large):
     s_falling.append(generate_position(y_bottom[0], y_bottom[1]))
     v_falling.append(generate_velocity())
-    R_falling.append(random.uniform(r_large[0], r_large[1]))
+    R_falling.append(random.uniform(R_large[0], R_large[1]))
 
 # --- LAYER 2 ---
 for _ in range(n_medium):
     s_falling.append(generate_position(y_middle[0], y_middle[1]))
     v_falling.append(generate_velocity())
-    R_falling.append(random.uniform(r_medium[0], r_medium[1]))
+    R_falling.append(random.uniform(R_medium[0], R_medium[1]))
 
 # --- LAYER 3 ---
 for _ in range(n_small):
     s_falling.append(generate_position(y_top[0], y_top[1]))
     v_falling.append(generate_velocity())
-    R_falling.append(random.uniform(r_small[0], r_small[1]))
+    R_falling.append(random.uniform(R_small[0], R_small[1]))
 
 # Convert to numpy arrays
 s_falling = np.array(s_falling)
@@ -143,9 +143,9 @@ R_falling = np.array(R_falling)
 particletype = np.empty(n_falling, dtype=np.int8) 
 
 for n, Rvalue in enumerate(R_falling):
-    if Rvalue >= r_large[0]:
+    if Rvalue >= R_large[0]:
         particletype[n] = 2
-    elif Rvalue >= r_medium[0]:
+    elif Rvalue >= R_medium[0]:
         particletype[n] = 1
     else:
         particletype[n] = 0

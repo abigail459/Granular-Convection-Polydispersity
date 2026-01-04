@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from matplotlib.patches import Circle
-import csv
-from collections import defaultdict
 from matplotlib.animation import FuncAnimation
 import time as time_module
 from matplotlib.animation import FFMpegWriter
@@ -25,8 +23,8 @@ s_history = data["s_history"]
 R = data["R"]
 n_falling = int(data["n_falling"])
 time_history = data["time_history"]
-rdata = np.load("falling_data.npz")
-particletype = rdata["particletype"]
+Rdata = np.load("falling_data.npz")
+particletype = Rdata["particletype"]
 
 
 osc_enable_x = bool(data.get("oscillation_enable_x", False))
