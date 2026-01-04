@@ -1,4 +1,4 @@
-# 02withoutfriction.py
+# 02forcecalculation.py
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -12,18 +12,18 @@ import time as time_module
 
 from numba import jit, prange
 
-# === Things to take note of ===
+# --- Things to take note of ---
 # μ is denoted as "mu" in variable names. 
 
 
-# == DIRECTORY SETUP == 
+# --- DIRECTORY SETUP --- 
 rootdir = "/Users/liliy/Documents/GitHub"  # Change accordingly
 os.chdir(f"{rootdir}/ISS2.0/data")
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
 
 
-# == PHYSICAL PARAMETERS == 
+# --- PHYSICAL PARAMETERS --- 
 # Material properties based on steel particles (ρ = 7630 kg/m^3)
 rho_particle = 7630        # Particle density (kg/m^3)
 E_tilde = 1e7              # Effective Young's modulus in Hertzian contact formula (Pa) 
@@ -33,15 +33,15 @@ w_adhesion = 0.0           # Surface energy density for JKR cohesion (J/m^2).
                            # Set to zero: for non-cohesive dry granular materials
 Mu_air = 1.82e-5           # Dynamic viscosity of air (Pa*s). Used for Stokes drag calculation. 
 
-# == FRICTION PARAMETERS (Cundall-Strack) == 
+# --- FRICTION PARAMETERS (Cundall-Strack) --- 
 k_t = 2e7                  # Tangential spring stiffness (N/m). Governs elastic tangential deformation before sliding.
 mu_t = 0.3                 # Coulomb sliding friction coefficient [dimensionless].
 mu_r = 0.04                # Rolling resistance coefficient [dimensionless]. Accounts for energy loss due to particle rotation.
 
-# == GRAVITY ==
+# --- GRAVITY ---
 g = np.array([0.0, -9.8, 0.0]) # 9.8 m/s^2
 
-# == SIMULATION PARAMETERS == 
+# --- SIMULATION PARAMETERS --- 
 t_step = 2e-5                # (20) microseconds 
 simulation_duration = 180.0  # In seconds
 display_fps = 90             # Frames per second of the output video
@@ -53,7 +53,7 @@ print(f"  Duration: {simulation_duration}s")
 print(f"  Total steps: {int(simulation_duration/t_step):,}")
 print(f"  Frames: {int(simulation_duration * display_fps)}")
 
-# == OSCILLATION CONFIGURATION == 
+# --- OSCILLATION CONFIGURATION --- 
 class oscillation_config:
     def __init__(self):
         # Make False/True to indicate way we want it to vibrate (vertical/horizontal). 
@@ -107,7 +107,7 @@ oscil_config = oscillation_config()
 oscil_config.print_info(abs(g[1]))
 
 
-# === READ BOX INFORMATION ===
+# --- READ BOX INFORMATION ---
 with open("box_dimensions.csv", "r") as f:
     reader = csv.DictReader(f)
     box_info = next(reader)
@@ -144,7 +144,7 @@ print(f"Wall particles: {n_box}")
 print(f"  Spacing: {wall_spacing*1000:.0f}mm")
 print(f"  Radius: {box_particle_radius*1000:.0f}mm")
 
-# == CSV == 
+# --- CSV ---
 def READ(file):
     completefile = []
     with open(file, 'r', newline='') as fin:
@@ -175,7 +175,7 @@ gamma_n = gamma_n_over_R * R
 tangential_history = np.zeros((n_particles, n_particles, 3), dtype=np.float64)
 
 
-# === CONTACT FORCE CALCULATION ===
+# --- CONTACT FORCE CALCULATION ---
 
 @jit (nopython=True, parallel=True, fastmath=True)
 def get_forces_numba(s, v, R, gamma_n, E_tilde,
@@ -343,7 +343,7 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
     return F_contact
 
 
-# === TOTAL FORCES === 
+# --- TOTAL FORCES --- 
 def get_forces_optimised(s, v, R, m, gamma_n, E_tilde, n_falling, box_velocity):
     n = len(s)
     F_total = np.zeros((n, 3))
@@ -368,7 +368,7 @@ def get_forces_optimised(s, v, R, m, gamma_n, E_tilde, n_falling, box_velocity):
 
 
 
-# === SIMULATION LOOP === 
+# --- SIMULATION LOOP --- 
 
 def run_simulation():
     print("\n" + "-"*60)

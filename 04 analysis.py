@@ -81,7 +81,7 @@ for i in range(n_frames):
 print("Segregation index computation complete")
 
 
-# === SMOOTHING (1s moving average) ===
+# --- SMOOTHING (1s moving average) ---
 print("Smoothing S(t)")
 
 window = max(1, int(1.0 * fps))
@@ -93,7 +93,7 @@ time_smooth = time[:len(S_smooth)]
 print(f"Smoothing window: {window} frames (~1 s).")
 
 
-# === METRICS ===
+# --- METRICS ---
 print("Extracting segregation metrics")
 
 S_max = float(np.max(S_smooth))
