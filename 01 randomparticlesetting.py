@@ -1,11 +1,11 @@
-#01randomparticlesetting.py
+# 01randomparticlesetting.py
 import csv
 import random
 import numpy as np
 import os
 
 
-# == NUMBER OF PARTICLES TO SHAKE IN CONTAINER == 
+# --- NUMBER OF PARTICLES TO SHAKE IN CONTAINER --- 
 n_falling = 264  
 
 os.chdir("/Users/Abigail/Documents/GitHub/ISS2.0/data/") # Change accordingly
@@ -24,7 +24,7 @@ def WRITE_DICT(file, data_dict):
         print(f"box info written to '{file}'")
 
 
-# === BOX DIMENSIONS === (saved in .csv file)
+# --- BOX DIMENSIONS --- (saved in .csv file)
 
 # Box dimensions (must match simulation!)
 box_left = 0.01
@@ -36,7 +36,7 @@ box_width = box_right - box_left   # 0.18m
 box_height = box_top - box_bottom  # 0.18m
 
 
-# ===== TRIAL RANGES =====
+# --- TRIAL RANGES ---
 # Particle size ranges (3 distinct sizes). 
 
 # Example: 
@@ -116,19 +116,19 @@ s_falling = []
 v_falling = []
 R_falling = []
 
-# LAYER 1: Large particles at the bottom
+# --- LAYER 1 ---
 for _ in range(n_large):
     s_falling.append(generate_position(y_bottom[0], y_bottom[1]))
     v_falling.append(generate_velocity())
     R_falling.append(random.uniform(r_large[0], r_large[1]))
 
-# LAYER 2: Medium particles in the middle
+# --- LAYER 2 ---
 for _ in range(n_medium):
     s_falling.append(generate_position(y_middle[0], y_middle[1]))
     v_falling.append(generate_velocity())
     R_falling.append(random.uniform(r_medium[0], r_medium[1]))
 
-# LAYER 3: Small particles on top
+# --- LAYER 3 ---
 for _ in range(n_small):
     s_falling.append(generate_position(y_top[0], y_top[1]))
     v_falling.append(generate_velocity())
@@ -166,9 +166,7 @@ np.savez(
 print(f"  Layer heights: {layer_height*100:.1f}cm each")
 print(f"{'='*60}\n")
 
-# =======
-# PARTICLE RANDOM GENERATION (commented out, as it ended up unused for our study)
-# =======
+# --- PARTICLE RANDOM GENERATION (commented out, as it ended up unused for our study) ---
 """
 # Completely random positions (no layers)
 def s_gen():
@@ -183,6 +181,7 @@ v_falling = np.array([[v_gen(), 0.0, 0.0] for _ in range(n_falling)])
 R_falling = np.array([r_gen() for _ in range(n_falling)])
 """
 
+# Cast into a dictionary which is then stored into a csv file
 box_info = {
     "box_left": box_left,
     "box_right": box_right,
