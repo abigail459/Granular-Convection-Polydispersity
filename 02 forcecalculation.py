@@ -32,8 +32,9 @@ Mu_air = 1.82e-5           # Dynamic viscosity of air (Pa*s). Used for Stokes dr
 
 # --- FRICTION PARAMETERS (Cundall-Strack) --- 
 k_t = 2e7                  # Tangential spring stiffness (N/m). Governs elastic tangential deformation before sliding.
-mu_t = 0.3                 # Coulomb sliding friction coefficient [dimensionless].
-mu_r = 0.04                # Rolling resistance coefficient [dimensionless]. Accounts for energy loss due to particle rotation.
+mu_t = 0.3                 # Effective tangential force cap (Coulomb-like). Used for numerical stability and translational energy dissipation, not physical friction.
+mu_r = 0.04                # Effective rolling resistance coefficient used as tangential velocity damping. 
+                           # NOT a physical rolling friction model, since particle rotation is not resolved.
 
 # --- GRAVITY ---
 g = np.array([0.0, -9.8, 0.0]) # 9.8 m/s^2
@@ -217,7 +218,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
             R_eff = (R[i] * R[j]) / (R[i] + R[j]) # Hertzian effective radius for two spheres in contact.
 
             # Velocities
-            if i <n_falling: # If it is a particle in the box, 
+            if i <n_falling: # If it is a falling (mobile) particle in the box, 
                 v_i_x = v[i, 0]
                 v_i_y = v[i, 1]
                 v_i_z = v[i, 2]
@@ -247,7 +248,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
             v_rel_normal = v_rel_x * r_hat_x + v_rel_y * r_hat_y + v_rel_z * r_hat_z
 
             root_term = np.sqrt(R_eff * h_ij) # proportional to contact radius.
-            f_elastic_mag = (2.0/3.0) * E_tilde * np.sqrt(R_eff) * (h_ij ** 1.5) 
+            f_elastic_mag = (4.0/3.0) * E_tilde * np.sqrt(R_eff) * (h_ij ** 1.5) 
             f_viscous_mag =  -gamma_n[i] * root_term * v_rel_normal
 
             f_n_mag = f_elastic_mag+f_viscous_mag # scalar normal force.
@@ -270,7 +271,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
             xi_y = tang_hist[i, j, 1] + vty * t_step
             xi_z = tang_hist[i, j, 2] + vtz * t_step
 
-            # Tangential spring force = −ktξ 
+            # Tangential spring force = −ktξ : for numerical stability and translational dissipation
             ft_x = -k_t * xi_x
             ft_y = -k_t * xi_y
             ft_z = -k_t * xi_z
@@ -279,10 +280,10 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
             fn_norm = fnx * r_hat_x + fny * r_hat_y + fnz * r_hat_z # Normal component of the normal force (should be ≥ 0 when they’re pushing together).
             if fn_norm < 0.0:
                 fn_norm = 0.0
-            max_ft = mu_t * fn_norm # Is the Coulomb friction limit --> proportional to how hard they are pressed together.
+            max_ft = mu_t * fn_norm # Coulomb-like tangential force cap (effective)
 
             if ft_mag > max_ft and ft_mag > 1e-16: # If the spring wants more force than Coulomb allows (ft_mag > max_ft), 
-                                                   # The contact starts sliding.
+                                                   # Tangential force is capped
                                                    # Forces are scaled down so their magnitude becomes exactly max_ft.
                 scale = max_ft / ft_mag
                 ft_x *= scale
@@ -292,7 +293,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
                 xi_y = -ft_y / k_t
                 xi_z = -ft_z / k_t
 
-            # Remove normal component from ft. Make Ft exactly tangential, removes any component along r_hat 
+            # Remove normal component from ft. removes any component along r_hat 
             dot_ft_n = ft_x * r_hat_x + ft_y * r_hat_y + ft_z * r_hat_z
             ft_x -= dot_ft_n * r_hat_x
             ft_y -= dot_ft_n * r_hat_y
@@ -307,7 +308,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
             tang_hist[j, i, 1] = -xi_y
             tang_hist[j, i, 2] = -xi_z
 
-            # Rolling resistance ~ mu_r * Fn opposite v_t
+            # Effective rolling resistance term : mu_r * Fn opposite tangential slip velocity,, Acts as additional tangential damping. 
             vt_norm = np.sqrt(vtx*vtx + vty*vty + vtz*vtz) # Magnitude of tangential relative velocity (how fast they are sliding).
 
             frx = 0.0
@@ -330,7 +331,7 @@ def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu
                 F_contact[i, 0] += fx
                 F_contact[i, 1] += fy
                 F_contact[i, 2] += fz
-            if j < n_falling: # Apply the equal & opposite force to j (Newton’s 3rd law).
+            if j < n_falling: # Apply the equal & opposite force to mobile particle j (Newton’s 3rd law).
                 F_contact[j, 0] -= fx
                 F_contact[j, 1] -= fy
                 F_contact[j, 2] -= fz
