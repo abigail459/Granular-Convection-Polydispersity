@@ -42,15 +42,15 @@ g = np.array([0.0, -9.8, 0.0]) # 9.8 m/s^2
 t_step = 2e-5                # (20) microseconds 
 simulation_duration = 5.0  # In seconds
 display_fps = 90             # Frames per second of the output video
-save_every_n_steps = int(1.0 / (display_fps * t_step))
+saveevery_nsteps = int(1.0 / (display_fps * t_step))
 
-print(f"SETTINGS:")
-print(f"  Timestep: {t_step*1e6:.0f} μs")
-print(f"  Duration: {simulation_duration}s")
-print(f"  Total steps: {int(simulation_duration/t_step):,}")
-print(f"  Frames: {int(simulation_duration * display_fps)}")
+print(f"\nSettings:")
+print(f"\tTimestep: {t_step*1e6:.0f} μs")
+print(f"\tDuration: {simulation_duration}s")
+print(f"\tTotal steps: {int(simulation_duration/t_step):,}")
+print(f"\tFrames: {int(simulation_duration * display_fps)}")
 
-# --- OSCILLATION CONFIGURATION --- 
+# --- OSCILLATION CONFIGURATION ---  (aka for the box)
 class oscillation_config:
     def __init__(self):
         # Make False/True to indicate way we want it to vibrate (vertical/horizontal). 
@@ -76,29 +76,29 @@ class oscillation_config:
         self.omega_x = 2 * np.pi * self.frequency_x
         self.omega_y = 2 * np.pi * self.frequency_y
 
-    def get_displacement(self, time):
+    def get_disp(self, time):
         x = self.amplitude_x * np.sin(self.omega_x * time + self.phase_x) if self.enable_x else 0.0
         y = self.amplitude_y * np.sin(self.omega_y * time + self.phase_y) if self.enable_y else 0.0
         return np.array([x, y, 0.0])
 
-    def get_velocity(self, time):
+    def get_v(self, time):
         vx = self.amplitude_x * self.omega_x * np.cos(self.omega_x * time + self.phase_x) if self.enable_x else 0.0
         vy = self.amplitude_y * self.omega_y * np.cos(self.omega_y * time + self.phase_y) if self.enable_y else 0.0
         return np.array([vx, vy, 0.0])
 
     def print_info(self, g_magnitude):
-        print(f"\n OSCILLATION SETTINGS")
+        print(f"\nOSCILLATION SETTINGS")
         if self.enable_x:
             Gamma_x = self.amplitude_x * self.omega_x**2 / g_magnitude
-            print(f"X (Horizontal): f={self.frequency_x:.1f} Hz, A={self.amplitude_x*1000:.1f} mm, Γ={Gamma_x:.3f}")
+            print(f"\tX: f={self.frequency_x:.1f} Hz, A={self.amplitude_x*1000:.1f} mm, Γ={Gamma_x:.3f}")
         else:
-            print("X: Disabled")
+            print("\tX: Disabled")
 
         if self.enable_y:
             Gamma_y = self.amplitude_y * self.omega_y**2 / g_magnitude
-            print(f"Y (Vertical):   f={self.frequency_y:.1f} Hz, A={self.amplitude_y*1000:.1f} mm, Γ={Gamma_y:.3f}")
+            print(f"\tY:  f={self.frequency_y:.1f} Hz, A={self.amplitude_y*1000:.1f} mm, Γ={Gamma_y:.3f}")
         else:
-            print("Y: Disabled")
+            print("\tY: Disabled")
 
 oscil_config = oscillation_config()
 oscil_config.print_info(abs(g[1]))
@@ -116,15 +116,15 @@ box_top = float(box_info["box_top"])
 
 box_width = box_right - box_left
 box_height = box_top - box_bottom
-print(f"\nBOX: {box_width*100:.0f}cm × {box_height*100:.0f}cm")
+print(f"\nBox dimensions: {box_width*100:.0f}cm × {box_height*100:.0f}cm")
 
 wall_spacing = 0.008
-box_particle_radius = 0.005
+box_particle_R = 0.005
 
-bottom_x = np.arange(box_left - box_particle_radius, box_right + box_particle_radius, wall_spacing)
+bottom_x = np.arange(box_left - box_particle_R, box_right + box_particle_R, wall_spacing)
 bottom_wall = np.array([[x, box_bottom, 0.0] for x in bottom_x])
 
-top_x = np.arange(box_left - box_particle_radius, box_right + box_particle_radius, wall_spacing)
+top_x = np.arange(box_left - box_particle_R, box_right + box_particle_R, wall_spacing)
 top_wall = np.array([[x, box_top, 0.0] for x in top_x])
 
 left_y = np.arange(box_bottom, box_top + wall_spacing, wall_spacing)
@@ -133,36 +133,36 @@ left_wall = np.array([[box_left, y, 0.0] for y in left_y])
 right_y = np.arange(box_bottom, box_top + wall_spacing, wall_spacing)
 right_wall = np.array([[box_right, y, 0.0] for y in right_y])
 
-box_positions_initial = np.vstack([bottom_wall, top_wall, left_wall, right_wall])
-n_box = len(box_positions_initial)
-box_R = np.full(n_box, box_particle_radius)
+box_pos_initial = np.vstack([bottom_wall, top_wall, left_wall, right_wall])
+n_box = len(box_pos_initial)
+box_R = np.full(n_box, box_particle_R)
 
 print(f"Wall particles: {n_box}")
-print(f"  Spacing: {wall_spacing*1000:.0f}mm")
-print(f"  Radius: {box_particle_radius*1000:.0f}mm")
+print(f"\tSpacing: {wall_spacing*1000:.0f}mm")
+print(f"\tRadius: {box_particle_R*1000:.0f}mm")
 
 # --- CSV ---
 def READ(file):
-    completefile = []
+    donefile = []
     with open(file, 'r', newline='') as fin:
         reader = csv.reader(fin)
         for row in reader:
-            completefile.append([float(x) for x in row])
-    return completefile
+            donefile.append([float(x) for x in row])
+    return donefile
 
 # Call particle data from csv files
 s_falling = data["s_falling"]
 v_falling = data["v_falling"]
 R_falling = data["R_falling"]
 
-s = np.vstack([s_falling, box_positions_initial])
+s = np.vstack([s_falling, box_pos_initial])
 v = np.vstack([v_falling, np.zeros((n_box, 3))])
 R = np.concatenate([R_falling, box_R])
 
 n_particles = len(R)
 n_falling = len(R_falling)
 
-print(f"\nPARTICLES num: {n_falling} falling + {n_box} walls = {n_particles} total")
+print(f"\nParticle numbers: {n_falling} falling + {n_box} walls = {n_particles} total")
 
 Vol = (4.0/3.0) * np.pi * R**3
 m = Vol * rho_particle
@@ -175,33 +175,29 @@ tangential_history = np.zeros((n_particles, n_particles, 3), dtype=np.float64)
 # --- CONTACT FORCE CALCULATION ---
 
 @jit (nopython=True, parallel=True, fastmath=True)
-def get_forces_numba(s, v, R, gamma_n, E_tilde,
-                                 n_falling, box_velocity,
-                                 k_t, mu_t, mu_r,
-                                 t_step, tang_hist):
-
+def calc_forces_numba(s, v, R, gamma_n, E_tilde, n_falling, box_v, k_t, mu_t, mu_r,t_step, tang_hist):
     n = len(s)
-    F_contact = np.zeros((n, 3)) # 2D array with n rows + 3 columns
+    F_contact = np.zeros((n, 3)) # 2D array with n rows and 3 columns
 
     # Loop over all unique particle pairs
     for i in prange(n):  # Parallel loop over 1st particle index
         for j in range(i + 1, n):  # 2nd particle index (avoid double-counting)
 
             # Calculate separation vector from particle j to particle i
-            dx = s[i, 0] - s[j, 0] 
+            dx = s[i, 0] - s[j,0] 
             dy = s[i, 1] - s[j, 1]  
-            dz = s[i, 2] - s[j, 2]
+            dz = s[i,2] - s[j, 2]
 
             # Check for contact. 
             dist_sq = dx*dx + dy*dy + dz*dz  # Squared distance between particles.
-            contact_threshold_sq = (R[i] + R[j]) ** 2  # Squared sum of radii = maximum squared distance for contact.
-            if dist_sq > contact_threshold_sq * 1.01:  # If particles are clearly further apart than the contact dist (with a 1% margin), skip them.
+            contact_sqr = (R[i] + R[j]) ** 2  # Squared sum of radii = maximum squared distance for contact.
+            if dist_sq > contact_sqr * 1.01:  # If particles are clearly further apart than the contact dist (with a 1% margin), skip them.
                 continue
             if dist_sq < 1e-24: # If they are (numerically) on top of each other, skip to avoid division by zero.
                 continue        # 1e-24 is basically 0, so it avoids division by 0
 
-            dist = np.sqrt(dist_sq)  # Square root: find actual distance.
-            h_ij = R[i] + R[j] - dist  # Overlap (penetration depth) between the spheres.
+            dist =  np.sqrt(dist_sq)  # Square root: find actual distance.
+            h_ij = R[i] + R[j] -dist  # Overlap between the spheres.
             if h_ij <= 0.0:  # If there is no overlap, the particles are not in contact.
                 # Reset tangential history when not in contact.
                 tang_hist[i, j, 0] = 0.0
@@ -209,61 +205,62 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
                 tang_hist[i, j, 2] = 0.0
                 tang_hist[j, i, 0] = 0.0
                 tang_hist[j, i, 1] = 0.0
-                tang_hist[j, i, 2] = 0.0    # Reset the stored tangential displacement: tangential spring starts from 0 next time they touch.
-                continue # Skip for this pair
-
-            inv_dist = 1.0 / dist  # Inverse of distance.
+                tang_hist[j, i, 2] = 0.0    # Reset the stored tangential displacement to 0 when they touch. 
+                continue # Skip  this pair
+            inv_d = 1.0 / dist  # Inverse distance. 
 
             # Components of the unit normal vector from j to i.
-            r_hat_x = dx * inv_dist 
-            r_hat_y = dy * inv_dist
-            r_hat_z = dz * inv_dist
+            r_hat_x = dx * inv_d 
+            r_hat_y = dy * inv_d
+            r_hat_z = dz * inv_d
 
             R_eff = (R[i] * R[j]) / (R[i] + R[j]) # Hertzian effective radius for two spheres in contact.
 
             # Velocities
-            if i < n_falling: # If it is a particle in the box, 
+            if i <n_falling: # If it is a particle in the box, 
                 v_i_x = v[i, 0]
                 v_i_y = v[i, 1]
                 v_i_z = v[i, 2]
             else: # If it is a wall particle, 
-                v_i_x = box_velocity[0]
-                v_i_y = box_velocity[1]
-                v_i_z = box_velocity[2]
+                v_i_x = box_v[0]
+                v_i_y = box_v[1]
+                v_i_z = box_v[2]
 
-            if j < n_falling:
+
+            if j <n_falling:
                 v_j_x = v[j, 0]
                 v_j_y = v[j, 1]
                 v_j_z = v[j, 2]
             else:
-                v_j_x = box_velocity[0]
-                v_j_y = box_velocity[1]
-                v_j_z = box_velocity[2]
+                v_j_x = box_v[0]
+                v_j_y = box_v[1]
+                v_j_z = box_v[2]
+
 
             # Relative velocities
             v_rel_x = v_i_x - v_j_x
             v_rel_y = v_i_y - v_j_y
             v_rel_z = v_i_z - v_j_z
 
-            # Scalar projection of relative velocity along the normal direction (normal component).
-            # r_hat is a unit vector pointing from j to i (length 1).
+            # scalar proj. of relative velocity along the normal direction (normal component).
+            # r_hat: a unit vector pointing from j to i
             v_rel_normal = v_rel_x * r_hat_x + v_rel_y * r_hat_y + v_rel_z * r_hat_z
 
             root_term = np.sqrt(R_eff * h_ij) # proportional to contact radius.
             f_elastic_mag = (2.0/3.0) * E_tilde * np.sqrt(R_eff) * (h_ij ** 1.5) 
-            f_viscous_mag = -gamma_n[i] * root_term * v_rel_normal
+            f_viscous_mag =  -gamma_n[i] * root_term * v_rel_normal
 
-            f_n_mag = f_elastic_mag + f_viscous_mag # scalar normal force.
+            f_n_mag = f_elastic_mag+f_viscous_mag # scalar normal force.
 
             # Multiplying by r_hat = vector normal force components, point along the line joining the centres.
-            fnx = f_n_mag * r_hat_x
+            fnx = f_n_mag *r_hat_x
             fny = f_n_mag * r_hat_y
             fnz = f_n_mag * r_hat_z
 
-            # Tangential relative velocity, how fast particles slide across each other. 
+            # Tangential relative velocity : how fast particles slide across each other. 
             # v_rel_normal * r_hat is the normal part of the rel v. 
             # Subtracting that from the total relative velocity leaves only the part perpendicular to the normal
-            vtx = v_rel_x - v_rel_normal * r_hat_x
+            vtx = v_rel_x -v_rel_normal * r_hat_x
             vty = v_rel_y - v_rel_normal * r_hat_y
             vtz = v_rel_z - v_rel_normal * r_hat_z
 
@@ -301,17 +298,18 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
             ft_y -= dot_ft_n * r_hat_y
             ft_z -= dot_ft_n * r_hat_z
 
-            # Save the updated tangential displacement for the pair (i,j).
-            tang_hist[i, j, 0] = xi_x
+            # Save hist
+            tang_hist[i, j,0] = xi_x
             tang_hist[i, j, 1] = xi_y
             tang_hist[i, j, 2] = xi_z
-            # For the opposite ordering (j,i) the displacement is the negative (because the direction is reversed).
-            tang_hist[j, i, 0] = -xi_x 
+            # For the opp. ordering (j,i) : displacement is  negative (reversed direction).
+            tang_hist[j, i,0] = -xi_x 
             tang_hist[j, i, 1] = -xi_y
             tang_hist[j, i, 2] = -xi_z
 
             # Rolling resistance ~ mu_r * Fn opposite v_t
             vt_norm = np.sqrt(vtx*vtx + vty*vty + vtz*vtz) # Magnitude of tangential relative velocity (how fast they are sliding).
+
             frx = 0.0
             fry = 0.0
             frz = 0.0
@@ -341,28 +339,19 @@ def get_forces_numba(s, v, R, gamma_n, E_tilde,
 
 
 # --- TOTAL FORCES --- 
-def get_forces_optimised(s, v, R, m, gamma_n, E_tilde, n_falling, box_velocity):
+def calc_forces(s, v, R, m, gamma_n, E_tilde, n_falling, box_v):
     n = len(s)
     F_total = np.zeros((n, 3))
 
     # Gravity
     F_total[:n_falling, 1] = m[:n_falling] * g[1]
-
-    # Air drag
-    F_total[:n_falling] -= 6.0 * np.pi * Mu_air * R[:n_falling, np.newaxis] * v[:n_falling]
+    # Air drag (Stokes!) : -6pi*muair * R * v
+    F_total[:n_falling] -=  6.0 * np.pi * Mu_air *R[:n_falling, np.newaxis] * v[:n_falling]
 
     # Contact forces --> Numba
-    F_contact = get_forces_numba(
-        s, v, R, gamma_n, E_tilde,
-        n_falling, box_velocity,
-        k_t, mu_t, mu_r,
-        t_step, tangential_history
-    )
+    F_contact = calc_forces_numba( s, v, R, gamma_n, E_tilde,n_falling, box_v, k_t, mu_t, mu_r, t_step, tangential_history)
     F_total += F_contact
-
     return F_total
-
-
 
 
 # --- SIMULATION LOOP --- 
@@ -377,64 +366,64 @@ def run_simulation():
     s_history = [s_current.copy()]
 
     time = 0.0
-    time_history = [0.0]
-    box_velocity = oscil_config.get_velocity(time)
-    F = get_forces_optimised(s_current, v_current, R, m, gamma_n, E_tilde, n_falling, box_velocity)
+    time_hist = [0.0]
+    box_v = oscil_config.get_v(time)
+    F = calc_forces(s_current, v_current, R, m, gamma_n, E_tilde, n_falling, box_v)
     a_current = F / m[:, np.newaxis]
-    last_saved_time = 0.0
+    last_saved_t = 0.0
 
-    frame_counter = 1
-    n_steps = int(simulation_duration / t_step)
+    frame_count = 1
+    n_steps= int(simulation_duration / t_step)
 
-    start_time = time_module.time()
-    last_print = start_time
+    total_t = time_module.time()
+    last_print = total_t
 
     print("\nRunning simulation...")
 
     for step in range(1, n_steps):
-        time = step * t_step
+        time = step *t_step
 
-        box_disp = oscil_config.get_displacement(time)
-        box_velocity = oscil_config.get_velocity(time)
+        box_disp = oscil_config.get_disp(time)
+        box_v = oscil_config.get_v(time)
 
-        current_time = time_module.time()
-        if current_time - last_print >= 10.0:
-            elapsed = current_time - start_time
-            progress = 100 * step / n_steps
-            steps_per_sec = step / elapsed
-            eta = (n_steps - step) / steps_per_sec
-            print(f"  {progress:.1f}% | {elapsed:.0f}s elapsed | {eta:.0f}s remaining")
-            last_print = current_time
+        current_t = time_module.time()
+        if current_t - last_print >= 10.0:
+            elap = current_t - total_t # elapsed time
+            prog = 100 * step / n_steps # progress
+            steps_ps = step / elap # steps per second
+            eta = (n_steps - step) / steps_ps
+            print(f"  {prog:.1f}% | {elap:.0f}s elap | {eta:.0f}s remaining")
+            last_print = current_t
 
         s_new = s_current.copy()
-        s_new[:n_falling] = s_current[:n_falling] + v_current[:n_falling] * t_step + \
+        s_new[:n_falling] =s_current[:n_falling] + v_current[:n_falling] * t_step + \
                             0.5 * a_current[:n_falling] * t_step**2
 
-        s_new[n_falling:] = box_positions_initial + box_disp
+        s_new[n_falling:] = box_pos_initial + box_disp
 
-        F_new = get_forces_optimised(s_new, v_current, R, m, gamma_n, E_tilde, n_falling, box_velocity)
+        F_new =calc_forces(s_new, v_current, R, m, gamma_n, E_tilde, n_falling, box_v)
         a_new = F_new / m[:, np.newaxis]
 
-        v_new = v_current.copy()
+        v_new =v_current.copy()
         v_new[:n_falling] = v_current[:n_falling] + 0.5 * (a_current[:n_falling] + a_new[:n_falling]) * t_step
 
         s_current = s_new
         v_current = v_new
         a_current = a_new
 
-        if step % save_every_n_steps == 0:
+        if step % saveevery_nsteps==0:
             s_history.append(s_current.copy())
-            time_history.append(time)
-            frame_counter += 1
+            time_hist.append(time)
+            frame_count += 1
 
-        if time - last_saved_time >= 20.0:
+        if time- last_saved_t>=20.0:
             np.savez(
                 "generated_values.npz",
                 s_history=np.array(s_history),
-                n_frames=frame_counter,
+                n_frames=frame_count,
                 R=R,
                 n_falling=n_falling,
-                time_history=time_history,
+                time_hist=time_hist,
                 oscillation_amplitude_x=oscil_config.amplitude_x,
                 oscillation_amplitude_y=oscil_config.amplitude_y,
                 oscillation_frequency_x=oscil_config.frequency_x,
@@ -444,15 +433,15 @@ def run_simulation():
                 oscillation_enable_x=oscil_config.enable_x,
                 oscillation_enable_y=oscil_config.enable_y
             )
-            last_saved_time = time
+            last_saved_t = time
 
     np.savez(
         "generated_values.npz",
         s_history=np.array(s_history),
-        n_frames=frame_counter,
+        n_frames=frame_count,
         R=R,
         n_falling=n_falling,
-        time_history=time_history,
+        time_hist=time_hist,
         oscillation_amplitude_x=oscil_config.amplitude_x,
         oscillation_amplitude_y=oscil_config.amplitude_y,
         oscillation_frequency_x=oscil_config.frequency_x,
@@ -466,12 +455,12 @@ def run_simulation():
         display_fps = display_fps
     )
 
-    total_time = time_module.time() - start_time
-    print(f"\n{'-'*60}")
-    print(f"Generated {frame_counter} frames in {total_time}s")
-    print(f"{'-'*60}\n")
+    total_t = time_module.time() - total_t
+    print("\n")
+    print(f"Generated {frame_count} frames in {total_t}s")
+    print("\n")
 
-    return frame_counter, s_history
+    return frame_count, s_history
 
 
 n_frames, s_history = run_simulation()

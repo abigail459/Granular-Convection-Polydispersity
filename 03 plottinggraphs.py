@@ -24,7 +24,7 @@ R = data["R"]
 n_falling = int(data["n_falling"])
 time_history = data["time_history"]
 Rdata = np.load("falling_data.npz")
-particletype = Rdata["particletype"]
+particle_type = Rdata["particle_type"]
 
 
 osc_enable_x = bool(data.get("oscillation_enable_x", False))
@@ -55,11 +55,13 @@ else:
 
 omega = 2 * np.pi * oscillation_frequency
 
-def get_box_displacement(time):
+def get_box_disp(time):
     return oscillation_amplitude * np.sin(omega * time)
 
-def get_box_velocity(time):
-    return oscillation_amplitude * omega * np.cos(omega * time)
+#def get_box_v(time):
+#    return oscillation_amplitude * omega * np.cos(omega * time)
+
+
 
 # --- INITIALISATION --- 
 def initial_render(R, n_falling):   # Render constant variables first, then update movement using FuncAnimation
@@ -116,10 +118,10 @@ def update_frame(frame, s_history, times, R, circles, texts, title, n_falling, h
         x, y = s_current[n, 0], s_current[n, 1]        
         circle.center = (x, y)
 
-        if n < n_falling: # Setting particle colours
-            if particletype[n] == 2:
+        if n < n_falling: # the 3 particle colours
+            if particle_type[n]== 2:
                 circle.set_facecolor("#004CFF")
-            elif particletype[n] == 0:
+            elif particle_type[n] == 0:
                 circle.set_facecolor("#FF0000")
             else:
                 circle.set_facecolor("#33FF33")
@@ -128,7 +130,7 @@ def update_frame(frame, s_history, times, R, circles, texts, title, n_falling, h
                 texts[n].set_position((x, y))
 
     # title
-    box_disp = get_box_displacement(time)
+    box_disp = get_box_disp(time)
     title.set_text(f'Time: {time:.2f}s | Oscillation: {box_disp*1000:.1f}mm')
 
     return circles + [text for text in texts if text is not None] + [title] # For blitting, a faster way to copy images
@@ -152,29 +154,29 @@ animation = FuncAnimation(fig =fig,
 def render_frame(frame_index, filename=None):
     s_current = s_history[frame_index]
     time = time_history[frame_index]
-    box_disp = get_box_displacement(time)
+    box_disp = get_box_disp(time)
 
     for n, circle in enumerate(circles):
         x, y = s_current[n, 0], s_current[n, 1]        
         circle.center = (x, y)
 
         if n < n_falling: # Setting colours
-            if particletype[n] == 2:
+            if particle_type[n]== 2:
                 circle.set_facecolor("#004CFF")
-            elif particletype[n] == 0:
+            elif particle_type[n] == 0:
                 circle.set_facecolor("#FF0000")
             else:
                 circle.set_facecolor("#33FF33")
             if texts[n] is not None:
                 texts[n].set_position((x, y))
 
-    # Title
-    box_disp = get_box_displacement(time)
+    # Title of the graph at the top
+    box_disp = get_box_disp(time)
     title.set_text(f'Time: {time:.2f}s | Oscillation: {box_disp*1000:.1f}mm')
 
     fig.canvas.draw()
     if filename:
-        fig.savefig(filename, dpi=80)
+        fig.savefig(filename, dpi= 80)
 
 # Render all
 render_frames = False
@@ -186,11 +188,11 @@ if render_frames:
     print(f"Rendered frames")
 
 
-# --- END OUTPUT and SAVING ANIMATION ---
+# ---  OUTPUT ---
 os.chdir(f"{rootdir}/ISS2.0/Figures")
 
 print("\nStarting video compilation...")
-total_frames = len(s_history)
+total_frames =len(s_history)
 
 writer = FFMpegWriter(
     fps=display_fps,
@@ -201,20 +203,14 @@ writer = FFMpegWriter(
 with writer.saving(fig, "output.mp4", dpi=80):
     for i in range(total_frames):
         update_frame(
-            i, s_history, time_history, R,
-            circles, texts, title,
-            n_falling, highcutoff, lowcutoff
-        )
+            i, s_history, time_history, R,circles, texts, title,n_falling, highcutoff, lowcutoff)
         writer.grab_frame()
 
         # Progress update every 5%
-        if i % max(1, total_frames // 20) == 0:
-            percent = 100 * i / total_frames
+        if i % max(1, total_frames // 20) ==0:
+            percent = 100 * i /total_frames
             elapsed = time_module.time() - start_time
             print(f"  {percent:5.1f}% complete | {i}/{total_frames} frames | {elapsed:.1f}s elapsed")
 
-print("\n" + "-"*60)
-print("Video compilation complete!")
-print(f"Saved video as 'output.mp4'")
-print("-"*60)
-
+print("\nVideo compilation complete!")
+print(f"Saved video as 'output.mp4'\n")
