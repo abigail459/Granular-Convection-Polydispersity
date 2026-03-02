@@ -6,7 +6,8 @@ import csv
 print("--- Segregation analysis started ---")
 
 # --- PATH ---
-os.chdir("/Users/Abigail/Documents/GitHub/ISS2.0/data")
+rootdir = "/Users"  # Change accordingly
+os.chdir(os.path.join(rootdir, "data"))
 
 
 # --- LOAD DATA ---

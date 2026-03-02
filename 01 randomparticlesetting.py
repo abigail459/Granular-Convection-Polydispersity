@@ -8,7 +8,8 @@ import os
 # --- NUMBER OF PARTICLES TO SHAKE IN CONTAINER --- 
 n_falling = 264  
 
-os.chdir("/Users/liliy/Documents/GitHub/ISS2.0/data") # Change accordingly
+rootdir = "/Users"  # Change accordingly
+os.chdir(os.path.join(rootdir, "data"))
 
 def WRITE(file, data):
     with open(file, "w", newline='') as fin:
@@ -63,9 +64,9 @@ box_height = box_top -box_bottom  # 0.18m
 # R_large = (0.00553, 0.006) 
 
 #06
-R_small = (0.0038, 0.0044)    
-R_medium = (0.00441,0.00559) 
-R_large = (0.0056, 0.0062) 
+# R_small = (0.0038, 0.0044)    
+# R_medium = (0.00441,0.00559) 
+# R_large = (0.0056, 0.0062) 
 
 #07
 # R_small = (0.0036, 0.00431)    

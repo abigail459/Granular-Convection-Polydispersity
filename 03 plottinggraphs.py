@@ -11,9 +11,8 @@ from matplotlib.animation import FFMpegWriter
 
 
 # --- DIRECTORY SETUP ---
-rootdir = "/Users/liliy/Documents/GitHub" # Change accordingly
-os.chdir(f"{rootdir}/ISS2.0/data")
-current_directory = os.getcwd()
+rootdir = "/Users"  # Change accordingly
+os.chdir(os.path.join(rootdir, "data"))
 
 # --- DATA SETUP --- 
 data = np.load("generated_values.npz")
@@ -181,7 +180,7 @@ def render_frame(frame_index, filename=None):
 # Render all
 render_frames = False
 if render_frames:
-    os.chdir(f"{rootdir}/ISS2.0/Figures/")
+    os.chdir(os.path.join(rootdir, "Figures"))
     os.makedirs("Frames", exist_ok=True) # exist_ok prevents errors if file is already there
     for frame in range(len(s_history)):
         render_frame(frame, filename=f"Frames/fig_{frame:04d}.png")
@@ -189,7 +188,7 @@ if render_frames:
 
 
 # ---  OUTPUT ---
-os.chdir(f"{rootdir}/ISS2.0/Figures")
+os.chdir(os.path.join(rootdir, "Figures"))
 
 print("\nStarting video compilation...")
 total_frames =len(s_history)

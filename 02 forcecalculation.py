@@ -14,8 +14,8 @@ from numba import jit, prange
 
 
 # --- DIRECTORY SETUP --- 
-rootdir = "/Users/liliy/Documents/GitHub"  # Change accordingly
-os.chdir(f"{rootdir}/ISS2.0/data")
+rootdir = "/Users"  # Change accordingly
+os.chdir(os.path.join(rootdir, "data"))
 current_directory = os.getcwd()
 data = np.load("falling_data.npz")
 
@@ -64,13 +64,13 @@ class oscillation_config:
         self.frequency_x = 5.0
         self.frequency_y = 7.6 # In Hz
 
-        '''
+        """
         to ensure Γ ≈ 1.5 to 3.0, where convection and segregation happen
         however, different shaking has different ranges
         human: Γ ≈ 0.5-3.0; ~2-6Hz; ~5-30mm
         lab: Γ: ~1-15; ~5-100 Hz; ~0.1-10 mm
         industrial: ~10-100+; ~10-1000 Hz; ~0.01-5 mm
-        '''
+        """
 
         self.phase_x = 0.0
         self.phase_y = 0.0
@@ -145,7 +145,7 @@ print(f"\tRadius: {box_particle_R*1000:.0f}mm")
 # --- CSV ---
 def READ(file):
     donefile = []
-    with open(file, 'r', newline='') as fin:
+    with open(file, "r", newline="") as fin:
         reader = csv.reader(fin)
         for row in reader:
             donefile.append([float(x) for x in row])
